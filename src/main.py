@@ -14,6 +14,8 @@ async def main() -> None:
     app = aiohttp.web.Application()
     app.router.add_post("/hello", hello)
     server_task = asyncio.create_task(aiohttp.web._run_app(app, port=3003))
+    # wait for server to startup
+    await asyncio.sleep(1)
 
     reused = 0
 
