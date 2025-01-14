@@ -1,0 +1,36 @@
+name: CI
+
+on: [push]
+
+jobs:
+  lint_and_test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version: [3.9, '3.10', '3.11', '3.12']
+    steps:
+      - name: Setup Python ${{ matrix.python_version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python_version }}
+      - name: Fetch test
+        uses: actions/checkout@v4
+      - name: Generic python setup
+        run: |
+          python -m pip install --upgrade pip
+      - name: Installing dependencies
+        run: |
+          python -m pip install -r requirements.txt
+      - name: Lint with black
+        run: |
+          python -m black --check src
+      - name: Type check with mypy
+        working-directory: src
+        run: |
+          mypy . --explicit-package-bases --disallow-untyped-defs
+      - name: Lint with ruff
+        run: ruff check --output-format=github src
+      - name: Run tests
+        working-directory: src
+        run: |
+          python main.py
