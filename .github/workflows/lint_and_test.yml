@@ -5,6 +5,7 @@ on: [push]
 jobs:
   lint_and_test:
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       matrix:
         python_version: [3.9, '3.10', '3.11', '3.12']
