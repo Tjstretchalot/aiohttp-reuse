@@ -7,6 +7,8 @@ import aiohttp.web
 
 
 async def hello(_request: aiohttp.web.Request) -> aiohttp.web.Response:
+    body = await _request.read()
+    print(f"server received: {body!r}")
     return aiohttp.web.Response(body=b"")
 
 
@@ -41,8 +43,7 @@ async def main() -> None:
 
         async with session.post(
             "http://127.0.0.1:3003/hello",
-            data=b"",
-            headers={"Content-Length": "0"},
+            data=b"test",
         ) as response:
             response.raise_for_status()
 
