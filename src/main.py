@@ -9,6 +9,7 @@ import aiohttp.web
 async def hello(_request: aiohttp.web.Request) -> aiohttp.web.Response:
     body = await _request.read()
     print(f"server received: {body!r}")
+    await asyncio.sleep(0.1)
     return aiohttp.web.Response(body=b"")
 
 
@@ -74,6 +75,8 @@ async def main() -> None:
                 print("===============TEST FAILED===============")
                 test_failed_ctr += 1
 
+            reused = 0
+
     for _ in range(num_tests):
         async with aiohttp.ClientSession(trace_configs=[tracer]) as session:
             async with session.post(
@@ -100,6 +103,7 @@ async def main() -> None:
         ...
 
     assert test_failed_ctr == 0, f"test failed {test_failed_ctr}/{num_tests} times"
+    print("===============TEST PASSED===============")
 
 
 if __name__ == "__main__":
