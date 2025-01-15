@@ -4,6 +4,7 @@ import secrets
 from types import SimpleNamespace
 
 import aiohttp
+import aiohttp.abc
 import aiohttp.payload
 import aiohttp.web
 
@@ -12,6 +13,21 @@ async def hello(_request: aiohttp.web.Request) -> aiohttp.web.Response:
     body = await _request.read()
     print(f"server received {len(body)} bytes")
     return aiohttp.web.Response(body=b"")
+
+
+async def monkey_patch_IOBasePayload_write(
+    self: aiohttp.payload.IOBasePayload, writer: aiohttp.abc.AbstractStreamWriter
+) -> None:
+    try:
+        chunk = self._value.read(2**16)
+        while chunk:
+            await writer.write(chunk)
+            chunk = self._value.read(2**16)
+    finally:
+        self._value.close()
+
+
+aiohttp.payload.IOBasePayload.write = monkey_patch_IOBasePayload_write
 
 
 async def main() -> None:
@@ -39,7 +55,7 @@ async def main() -> None:
         async with aiohttp.ClientSession(trace_configs=[tracer]) as session:
             async with session.post(
                 "http://127.0.0.1:3003/hello",
-                data=secrets.token_bytes(1024 * 512),
+                data=b"test",
             ) as response:
                 response.raise_for_status()
 
@@ -47,7 +63,7 @@ async def main() -> None:
 
             async with session.post(
                 "http://127.0.0.1:3003/hello",
-                data=secrets.token_bytes(1024 * 512),
+                data=b"test",
             ) as response:
                 response.raise_for_status()
 
@@ -60,7 +76,7 @@ async def main() -> None:
         async with aiohttp.ClientSession(trace_configs=[tracer]) as session:
             async with session.post(
                 "http://127.0.0.1:3003/hello",
-                data=io.BytesIO(secrets.token_bytes(1024 * 512)),
+                data=io.BytesIO(b"test"),
             ) as response:
                 response.raise_for_status()
 
@@ -68,7 +84,7 @@ async def main() -> None:
 
             async with session.post(
                 "http://127.0.0.1:3003/hello",
-                data=io.BytesIO(secrets.token_bytes(1024 * 512)),
+                data=io.BytesIO(b"test"),
             ) as response:
                 response.raise_for_status()
 
@@ -82,7 +98,7 @@ async def main() -> None:
         async with aiohttp.ClientSession(trace_configs=[tracer]) as session:
             async with session.post(
                 "http://127.0.0.1:3003/hello",
-                data=secrets.token_bytes(1024 * 512),
+                data=b"test",
             ) as response:
                 response.raise_for_status()
 
@@ -90,7 +106,7 @@ async def main() -> None:
 
             async with session.post(
                 "http://127.0.0.1:3003/hello",
-                data=secrets.token_bytes(1024 * 512),
+                data=b"test",
             ) as response:
                 response.raise_for_status()
 
