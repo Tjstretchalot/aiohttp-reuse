@@ -20,6 +20,7 @@ async def main() -> None:
     await asyncio.sleep(1)
 
     reused = 0
+    num_tests = 5
 
     async def on_connection_reuseconn(
         __client_session: aiohttp.ClientSession,
@@ -32,43 +33,73 @@ async def main() -> None:
     tracer = aiohttp.TraceConfig()
     tracer.on_connection_reuseconn.append(on_connection_reuseconn)
 
-    async with aiohttp.ClientSession(trace_configs=[tracer]) as session:
-        async with session.post(
-            "http://127.0.0.1:3003/hello",
-            data=b"test",
-        ) as response:
-            response.raise_for_status()
+    for _ in range(num_tests):
+        async with aiohttp.ClientSession(trace_configs=[tracer]) as session:
+            async with session.post(
+                "http://127.0.0.1:3003/hello",
+                data=b"test",
+            ) as response:
+                response.raise_for_status()
 
-        assert reused == 0, f"{reused=}"
+            assert reused == 0, f"{reused=}"
 
-        async with session.post(
-            "http://127.0.0.1:3003/hello",
-            data=b"test",
-        ) as response:
-            response.raise_for_status()
+            async with session.post(
+                "http://127.0.0.1:3003/hello",
+                data=b"test",
+            ) as response:
+                response.raise_for_status()
 
-        assert reused == 1, f"{reused=}"
+            assert reused == 1, f"{reused=}"
+            reused = 0
 
     reused = 0
-    async with aiohttp.ClientSession(trace_configs=[tracer]) as session:
-        async with session.post(
-            "http://127.0.0.1:3003/hello",
-            data=io.BytesIO(b"test"),
-        ) as response:
-            response.raise_for_status()
+    test_failed_ctr = 0
+    for _ in range(num_tests):
+        async with aiohttp.ClientSession(trace_configs=[tracer]) as session:
+            async with session.post(
+                "http://127.0.0.1:3003/hello",
+                data=io.BytesIO(b"test"),
+            ) as response:
+                response.raise_for_status()
 
-        assert reused == 0, f"{reused=}"
+            assert reused == 0, f"{reused=}"
 
-        async with session.post(
-            "http://127.0.0.1:3003/hello",
-            data=io.BytesIO(b"test"),
-        ) as response:
-            response.raise_for_status()
+            async with session.post(
+                "http://127.0.0.1:3003/hello",
+                data=io.BytesIO(b"test"),
+            ) as response:
+                response.raise_for_status()
 
-        assert reused == 1, f"{reused=}"
+            if reused != 1:
+                print("===============TEST FAILED===============")
+                test_failed_ctr += 1
+
+    for _ in range(num_tests):
+        async with aiohttp.ClientSession(trace_configs=[tracer]) as session:
+            async with session.post(
+                "http://127.0.0.1:3003/hello",
+                data=b"test",
+            ) as response:
+                response.raise_for_status()
+
+            assert reused == 0, f"{reused=}"
+
+            async with session.post(
+                "http://127.0.0.1:3003/hello",
+                data=b"test",
+            ) as response:
+                response.raise_for_status()
+
+            assert reused == 1, f"{reused=}"
+            reused = 0
 
     server_task.cancel()
-    await server_task
+    try:
+        await server_task
+    except asyncio.CancelledError:
+        ...
+
+    assert test_failed_ctr == 0, f"test failed {test_failed_ctr}/{num_tests} times"
 
 
 if __name__ == "__main__":
