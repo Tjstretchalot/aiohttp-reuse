@@ -4,12 +4,12 @@ from types import SimpleNamespace
 
 import aiohttp
 import aiohttp.web
+import aiohttp.payload
 
 
 async def hello(_request: aiohttp.web.Request) -> aiohttp.web.Response:
     body = await _request.read()
     print(f"server received: {body!r}")
-    await asyncio.sleep(0.1)
     return aiohttp.web.Response(body=b"")
 
 
@@ -59,7 +59,7 @@ async def main() -> None:
         async with aiohttp.ClientSession(trace_configs=[tracer]) as session:
             async with session.post(
                 "http://127.0.0.1:3003/hello",
-                data=io.BytesIO(b"test"),
+                data=aiohttp.payload.BytesIOPayload(io.BytesIO(b"test")),
             ) as response:
                 response.raise_for_status()
 
@@ -67,7 +67,7 @@ async def main() -> None:
 
             async with session.post(
                 "http://127.0.0.1:3003/hello",
-                data=io.BytesIO(b"test"),
+                data=aiohttp.payload.BytesIOPayload(io.BytesIO(b"test")),
             ) as response:
                 response.raise_for_status()
 
