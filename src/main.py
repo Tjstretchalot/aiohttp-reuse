@@ -33,8 +33,7 @@ async def main() -> None:
     async with aiohttp.ClientSession(trace_configs=[tracer]) as session:
         async with session.post(
             "http://127.0.0.1:3003/hello",
-            data=b"",
-            headers={"Content-Length": "0"},
+            data=b"test",
         ) as response:
             response.raise_for_status()
 
@@ -53,8 +52,7 @@ async def main() -> None:
     async with aiohttp.ClientSession(trace_configs=[tracer]) as session:
         async with session.post(
             "http://127.0.0.1:3003/hello",
-            data=io.BytesIO(),
-            headers={"Content-Length": "0"},
+            data=io.BytesIO(b"test"),
         ) as response:
             response.raise_for_status()
 
@@ -62,8 +60,7 @@ async def main() -> None:
 
         async with session.post(
             "http://127.0.0.1:3003/hello",
-            data=io.BytesIO(),
-            headers={"Content-Length": "0"},
+            data=io.BytesIO(b"test"),
         ) as response:
             response.raise_for_status()
 
