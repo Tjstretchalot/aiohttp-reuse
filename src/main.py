@@ -3,8 +3,8 @@ import io
 from types import SimpleNamespace
 
 import aiohttp
-import aiohttp.web
 import aiohttp.payload
+import aiohttp.web
 
 
 async def hello(_request: aiohttp.web.Request) -> aiohttp.web.Response:
