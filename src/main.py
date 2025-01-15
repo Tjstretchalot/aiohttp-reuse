@@ -1,6 +1,5 @@
 import asyncio
 import io
-import secrets
 from types import SimpleNamespace
 
 import aiohttp
@@ -27,7 +26,7 @@ async def monkey_patch_IOBasePayload_write(
         self._value.close()
 
 
-aiohttp.payload.IOBasePayload.write = monkey_patch_IOBasePayload_write
+aiohttp.payload.IOBasePayload.write = monkey_patch_IOBasePayload_write  # type: ignore
 
 
 async def main() -> None:
